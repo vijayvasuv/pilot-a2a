@@ -1,0 +1,37 @@
+{
+  "agents": [
+    {
+      "name": "login_specialist",
+      "url": "http://127.0.0.1:8001",
+      "skills": [
+        "app-login",
+        "authentication",
+        "session-error",
+        "password-reset",
+        "AUTH_401",
+        "account-lockout",
+        "2fa"
+      ],
+      "description": "Handles login, session, and authentication issues"
+    },
+    {
+      "name": "billing_specialist",
+      "url": "http://127.0.0.1:8002",
+      "skills": [
+        "billing-dispute",
+        "unauthorized-charge",
+        "refund",
+        "subscription",
+        "duplicate-charge",
+        "payment"
+      ],
+      "description": "Handles billing disputes, charges, and refunds"
+    },
+    {
+      "name": "ticket_specialist",
+      "url": "http://127.0.0.1:8003",
+      "skills": ["create-ticket", "jira", "escalation"],
+      "description": "Creates Jira P1/P2 tickets via MCP (internal — called by specialists)"
+    }
+  ]
+}

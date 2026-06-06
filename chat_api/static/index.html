@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>A2A Support Pilot</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid #334155;
+      background: #1e293b;
+    }
+    header h1 { font-size: 1.25rem; font-weight: 600; }
+    header p { font-size: 0.85rem; color: #94a3b8; margin-top: 0.25rem; }
+    #messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      max-width: 800px;
+      width: 100%;
+      margin: 0 auto;
+    }
+    .msg {
+      max-width: 85%;
+      padding: 0.75rem 1rem;
+      border-radius: 12px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+    .msg.user {
+      align-self: flex-end;
+      background: #3b82f6;
+      color: white;
+    }
+    .msg.bot {
+      align-self: flex-start;
+      background: #1e293b;
+      border: 1px solid #334155;
+    }
+    .input-area {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid #334155;
+      background: #1e293b;
+    }
+    .input-row {
+      display: flex;
+      gap: 0.5rem;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    input {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      border: 1px solid #475569;
+      background: #0f172a;
+      color: #e2e8f0;
+      font-size: 1rem;
+    }
+    button {
+      padding: 0.75rem 1.25rem;
+      border-radius: 8px;
+      border: none;
+      background: #3b82f6;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .examples {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      max-width: 800px;
+      margin: 0.5rem auto 0;
+    }
+    .examples button {
+      background: #334155;
+      font-size: 0.8rem;
+      font-weight: 400;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>A2A Support Pilot</h1>
+    <p id="subtitle">Google ADK · A2A router → Specialist (RAG) → ticket_specialist (MCP → Jira P1)</p>
+  </header>
+  <div id="messages">
+    <div class="msg bot">Hi! I can help with login issues or billing problems. What can I help you with today?</div>
+  </div>
+  <div class="input-area">
+    <div class="input-row">
+      <input id="input" type="text" placeholder="Describe your issue..." />
+      <button id="send">Send</button>
+    </div>
+    <div class="examples">
+      <button onclick="sendExample('I cannot login to the app. I see AUTH_401 session expired on my Android phone.')">Login issue</button>
+      <button onclick="sendExample('There is an unauthorized $50 charge on my card that I do not recognize.')">Billing dispute</button>
+      <button onclick="sendExample('I was charged twice for my subscription this month.')">Duplicate charge</button>
+    </div>
+  </div>
+  <script>
+    let sessionId = null;
+    const messages = document.getElementById('messages');
+    const input = document.getElementById('input');
+    const sendBtn = document.getElementById('send');
+
+    function addMsg(text, role) {
+      const div = document.createElement('div');
+      div.className = 'msg ' + role;
+      div.textContent = text;
+      messages.appendChild(div);
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    async function sendMessage(text) {
+      if (!text.trim()) return;
+      addMsg(text, 'user');
+      input.value = '';
+      sendBtn.disabled = true;
+      try {
+        const res = await fetch('/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: text, session_id: sessionId }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          const detail = data.detail || data.reply || res.statusText;
+          addMsg('Error: ' + detail, 'bot');
+          return;
+        }
+        sessionId = data.session_id;
+        addMsg(data.reply, 'bot');
+      } catch (e) {
+        addMsg('Error: could not reach chat API. Open http://127.0.0.1:8080 and ensure all agents are running.', 'bot');
+      }
+      sendBtn.disabled = false;
+      input.focus();
+    }
+
+    function sendExample(text) {
+      input.value = text;
+      sendMessage(text);
+    }
+
+    sendBtn.onclick = () => sendMessage(input.value);
+    input.onkeydown = (e) => { if (e.key === 'Enter') sendMessage(input.value); };
+  </script>
+</body>
+</html>
