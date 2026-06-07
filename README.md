@@ -1,4 +1,4 @@
-# A2A Support Pilot
+# A2A Support Agents - Pilot
 
 Pilot project built with **Google ADK**, **A2A protocol**, **MCP**, and **RAG**.
 
